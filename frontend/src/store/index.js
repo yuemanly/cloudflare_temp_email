@@ -19,6 +19,7 @@ export const useGlobalState = createGlobalState(
             needAuth: false,
             adminContact: '',
             enableUserCreateEmail: false,
+            disableAnonymousUserCreateEmail: false,
             enableUserDeleteEmail: false,
             enableAutoReply: false,
             enableIndexAbout: false,
@@ -70,6 +71,9 @@ export const useGlobalState = createGlobalState(
         const indexTab = useSessionStorage('indexTab', 'mailbox');
         const globalTabplacement = useStorage('globalTabplacement', 'top');
         const useSideMargin = useStorage('useSideMargin', true);
+        const useUTCDate = useStorage('useUTCDate', false);
+        const autoRefresh = useStorage('autoRefresh', false);
+        const configAutoRefreshInterval = useStorage("configAutoRefreshInterval", 60);
         const userOpenSettings = ref({
             fetched: false,
             enable: false,
@@ -127,6 +131,9 @@ export const useGlobalState = createGlobalState(
             userSettings,
             globalTabplacement,
             useSideMargin,
+            useUTCDate,
+            autoRefresh,
+            configAutoRefreshInterval,
             telegramApp,
             isTelegram,
             showAdminPage,
