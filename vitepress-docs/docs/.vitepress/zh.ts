@@ -28,6 +28,7 @@ export const zh = defineConfig({
         },
 
         outline: {
+            level: 'deep',
             label: '页面导航'
         },
 
@@ -121,6 +122,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             text: '通过 Github Actions 部署',
             collapsed: true,
             items: [
+                { text: 'Github Actions 部署准备', link: 'actions/pre-requisite' },
                 { text: 'D1 数据库', link: 'actions/d1' },
                 { text: 'Github Actions 配置', link: 'actions/github-action' },
                 { text: '配置邮件转发', link: 'email-routing.md' },
@@ -151,6 +153,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
                 { text: '新建邮箱地址 API', link: 'feature/new-address-api' },
                 { text: 'Oauth2 第三方登录', link: 'feature/user-oauth2' },
                 { text: '配置其他worker增强', link: 'feature/another-worker-enhanced' },
+                { text: '给网页增加 Google Ads', link: 'feature/google-ads.md' },
             ]
         },
         {

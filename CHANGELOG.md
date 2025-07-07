@@ -1,7 +1,43 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
-## main(v0.8.7)
+## main(v1.0.1)
+
+- feat: |UI| 增加极简模式主页, 可在 `外观` 中切换
+
+## v1.0.0
+
+- fix: |UI| 修复 User 查看收件箱，不选择地址时，关键词查询不生效
+- fix: 修复自动清理任务，时间为 0 时不生效的问题
+- feat: 清理功能增加 创建 n 天前地址清理，n 天前未活跃地址清理
+- fix: |IMAP Proxy| 修复 IMAP Proxy 服务器，无法查看新邮件的问题
+
+## v0.10.0
+
+- feat: 支持 User 查看收件箱，`/user_api/mails` 接口, 支持 `address` 和 `keyword` 过滤
+- fix: 修复 Oauth2 登录获取 Token 时，一些 Oauth2 需要 `redirect_uri` 参数的问题
+- feat: 用户访问网页时，如果 `user token` 在 7 天内过期，自动刷新
+- feat: admin portal 中增加初始化 db 的功能
+- feat: 增加 `ALWAYS_SHOW_ANNOUNCEMENT` 变量，用于配置是否总是显示公告
+
+## v0.9.1
+
+- feat: |UI| support google ads
+- feat: |UI| 使用 shadow DOM 防止样式污染
+- feat: |UI| 支持 URL jwt 参数自动登录邮箱，jwt 参数会覆盖浏览器中的 jwt
+- fix: |CleanUP| 修复清理邮件时，清理时间超过 30 天报错的 bug
+- feat: admin 用户管理页面: 增加 用户地址查看功能
+- feat: | S3 附件| 增加 S3 附件删除功能
+- feat: | Admin API| 增加 admin 绑定用户和地址的 api
+- feat: | Oauth2 | Oatuh2 获取用户信息时，支持 `JSONPATH` 表达式
+
+## v0.9.0
+
+- feat: | Worker | 支持多语言
+- feat: | Worker | `NO_LIMIT_SEND_ROLE` 配置支持多角色, 逗号分割
+- feat: | Actions | build 里增加 `worker-with-wasm-mail-parser.zip` 支持 UI 部署带 `wasm` 的 worker
+
+## v0.8.7
 
 - fix: |UI| 修复移动设备日期显示问题
 - feat: |Worker| 支持通过 `SMTP` 发送邮件, 使用 [zou-yu/worker-mailer](https://github.com/zou-yu/worker-mailer/blob/main/README_zh-CN.md)

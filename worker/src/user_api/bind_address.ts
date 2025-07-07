@@ -1,16 +1,23 @@
 import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
-import { HonoCustomType } from '../types';
 import { UserSettings } from "../models";
 import { getJsonSetting } from "../utils"
 import { CONSTANTS } from "../constants";
 import { unbindTelegramByAddress } from '../telegram_api/common';
+import i18n from '../i18n';
+import { updateAddressUpdatedAt } from '../common';
 
-export default {
+const UserBindAddressModule = {
     bind: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
         const { address_id } = c.get("jwtPayload");
+        return await UserBindAddressModule.bindByID(c, user_id, address_id)
+    },
+    bindByID: async (
+        c: Context<HonoCustomType>,
+        user_id: number | string, address_id: number | string
+    ) => {
         if (!address_id || !user_id) {
             return c.text("No address or user token", 400)
         }
@@ -96,8 +103,30 @@ export default {
     },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.get("userPayload");
+        const results = await UserBindAddressModule.getBindedAddressesById(c, user_id);
+        return c.json({
+            results: results,
+        });
+    },
+    getBindedAddressListById: async (
+        c: Context<HonoCustomType>, user_id: number | string
+    ): Promise<string[]> => {
+        const bindedAddressList = await UserBindAddressModule.getBindedAddressesById(c, user_id);
+        return bindedAddressList.map((item) => item.name);
+    },
+    getBindedAddressesById: async (
+        c: Context<HonoCustomType>, user_id: number | string
+    ): Promise<{
+        id: number;
+        name: string;
+        mail_count: number;
+        send_count: number;
+        created_at: string;
+        updated_at: string;
+    }[]> => {
+        const msgs = i18n.getMessagesbyContext(c);
         if (!user_id) {
-            return c.text("No user token", 400)
+            throw new Error(msgs.UserNotFoundMsg);
         }
         // select binded address
         const { results } = await c.env.DB.prepare(
@@ -109,10 +138,15 @@ export default {
             + ` ON ua.address_id = a.id `
             + ` WHERE ua.user_id = ?`
             + ` ORDER BY a.id DESC`
-        ).bind(user_id).all();
-        return c.json({
-            results: results,
-        })
+        ).bind(user_id).all<{
+            id: number;
+            name: string;
+            mail_count: number;
+            send_count: number;
+            created_at: string;
+            updated_at: string;
+        }>();
+        return results || [];
     },
     getBindedAddressJwt: async (c: Context<HonoCustomType>) => {
         const { address_id } = c.req.param();
@@ -204,8 +238,9 @@ export default {
         if (!newAddressSuccess) {
             throw new Error("Failed to create address")
         }
+        await updateAddressUpdatedAt(c, address);
         // find new address id
-        let new_address_id = await c.env.DB.prepare(
+        const new_address_id = await c.env.DB.prepare(
             `SELECT id FROM address WHERE name = ?`
         ).bind(address).first<number | null | undefined>("id");
         if (!new_address_id) {
@@ -229,3 +264,5 @@ export default {
         return c.json({ success: true })
     }
 }
+
+export default UserBindAddressModule;

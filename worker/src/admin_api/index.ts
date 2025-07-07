@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
-import { HonoCustomType } from '../types'
+import i18n from '../i18n'
 import { sendAdminInternalMail, getJsonSetting, saveSetting, getUserRoles } from '../utils'
 import { newAddress, handleListQuery } from '../common'
 import { CONSTANTS } from '../constants'
@@ -11,7 +11,9 @@ import webhook_settings from './webhook_settings'
 import mail_webhook_settings from './mail_webhook_settings'
 import oauth2_settings from './oauth2_settings'
 import worker_config from './worker_config'
+import admin_mail_api from './admin_mail_api'
 import { sendMailbyAdmin } from './send_mail'
+import db_api from './db_api'
 
 export const api = new Hono<HonoCustomType>()
 
@@ -40,6 +42,8 @@ api.get('/admin/address', async (c) => {
 
 api.post('/admin/new_address', async (c) => {
     const { name, domain, enablePrefix } = await c.req.json();
+    const lang = c.get("lang") || c.env.DEFAULT_LANG;
+    const msgs = i18n.getMessages(lang);
     if (!name) {
         return c.text("Please provide a name", 400)
     }
@@ -53,7 +57,7 @@ api.post('/admin/new_address', async (c) => {
         });
         return c.json(res);
     } catch (e) {
-        return c.text(`Failed create address: ${(e as Error).message}`, 400)
+        return c.text(`${msgs.FailedCreateAddressMsg}: ${(e as Error).message}`, 400)
     }
 })
 
@@ -98,54 +102,10 @@ api.get('/admin/show_password/:id', async (c) => {
     })
 })
 
-api.get('/admin/mails', async (c) => {
-    const { address, limit, offset, keyword } = c.req.query();
-    if (address && keyword) {
-        return await handleListQuery(c,
-            `SELECT * FROM raw_mails where address = ? and raw like ? `,
-            `SELECT count(*) as count FROM raw_mails where address = ? and raw like ? `,
-            [address, `%${keyword}%`], limit, offset
-        );
-    } else if (keyword) {
-        return await handleListQuery(c,
-            `SELECT * FROM raw_mails where raw like ? `,
-            `SELECT count(*) as count FROM raw_mails where raw like ? `,
-            [`%${keyword}%`], limit, offset
-        );
-    } else if (address) {
-        return await handleListQuery(c,
-            `SELECT * FROM raw_mails where address = ? `,
-            `SELECT count(*) as count FROM raw_mails where address = ? `,
-            [address], limit, offset
-        );
-    } else {
-        return await handleListQuery(c,
-            `SELECT * FROM raw_mails `,
-            `SELECT count(*) as count FROM raw_mails `,
-            [], limit, offset
-        );
-    }
-});
-
-api.get('/admin/mails_unknow', async (c) => {
-    const { limit, offset } = c.req.query();
-    return await handleListQuery(c,
-        `SELECT * FROM raw_mails where address NOT IN (select name from address) `,
-        `SELECT count(*) as count FROM raw_mails`
-        + ` where address NOT IN (select name from address) `,
-        [], limit, offset
-    );
-});
-
-api.delete('/admin/mails/:id', async (c) => {
-    const { id } = c.req.param();
-    const { success } = await c.env.DB.prepare(
-        `DELETE FROM raw_mails WHERE id = ? `
-    ).bind(id).run();
-    return c.json({
-        success: success
-    })
-})
+// mail api
+api.get('/admin/mails', admin_mail_api.getMails);
+api.get('/admin/mails_unknow', admin_mail_api.getUnknowMails);
+api.delete('/admin/mails/:id', admin_mail_api.deleteMail)
 
 api.get('/admin/address_sender', async (c) => {
     const { address, limit, offset } = c.req.query();
@@ -324,6 +284,8 @@ api.post('/admin/users', admin_user_api.createUser)
 api.post('/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
 api.get('/admin/user_roles', async (c) => c.json(getUserRoles(c)))
 api.post('/admin/user_roles', admin_user_api.updateUserRoles)
+api.get('/admin/users/bind_address/:user_id', admin_user_api.getBindedAddresses)
+api.post('/admin/users/bind_address', admin_user_api.bindAddress)
 
 // user oauth2 settings
 api.get('/admin/user_oauth2_settings', oauth2_settings.getUserOauth2Settings)
@@ -343,3 +305,8 @@ api.get("/admin/worker/configs", worker_config.getConfig);
 
 // send mail by admin
 api.post("/admin/send_mail", sendMailbyAdmin);
+
+// db api
+api.get('admin/db_version', db_api.getVersion);
+api.post('admin/db_initialize', db_api.initialize);
+api.post('admin/db_migration', db_api.migrate);

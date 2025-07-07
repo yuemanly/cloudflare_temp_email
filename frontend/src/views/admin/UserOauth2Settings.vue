@@ -224,13 +224,13 @@ onMounted(async () => {
                         <n-form-item-row label="Access Token URL" required>
                             <n-input v-model:value="item.accessTokenURL" />
                         </n-form-item-row>
-                        <n-form-item-row label="Access Token accessTokenFormat" required>
+                        <n-form-item-row label="Access Token Params Format" required>
                             <n-select v-model:value="item.accessTokenFormat" :options="accessTokenFormatOptions" />
                         </n-form-item-row>
                         <n-form-item-row label="User Info URL" required>
                             <n-input v-model:value="item.userInfoURL" />
                         </n-form-item-row>
-                        <n-form-item-row label="User Email Key" required>
+                        <n-form-item-row label="User Email Key (Support JSONPATH like $[0].email)" required>
                             <n-input v-model:value="item.userEmailKey" />
                         </n-form-item-row>
                         <n-form-item-row label="Redirect URL" required>

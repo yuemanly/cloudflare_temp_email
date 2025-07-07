@@ -4,7 +4,6 @@ import { cleanup } from '../common';
 import { CONSTANTS } from '../constants';
 import { getJsonSetting, saveSetting } from '../utils';
 import { CleanupSettings } from '../models';
-import { HonoCustomType } from '../types';
 
 export default {
     cleanup: async (c: Context<HonoCustomType>) => {
@@ -18,13 +17,11 @@ export default {
         return c.json({ success: true })
     },
     getCleanup: async (c: Context<HonoCustomType>) => {
-        const value = await getJsonSetting(c, CONSTANTS.AUTO_CLEANUP_KEY);
-        const cleanupSetting = new CleanupSettings(value);
+        const cleanupSetting = await getJsonSetting<CleanupSettings>(c, CONSTANTS.AUTO_CLEANUP_KEY);
         return c.json(cleanupSetting)
     },
     saveCleanup: async (c: Context<HonoCustomType>) => {
-        const value = await c.req.json();
-        const cleanupSetting = new CleanupSettings(value);
+        const cleanupSetting = await c.req.json<CleanupSettings>();
         await saveSetting(c, CONSTANTS.AUTO_CLEANUP_KEY, JSON.stringify(cleanupSetting));
         return c.json({ success: true })
     }
